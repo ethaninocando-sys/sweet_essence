@@ -1,0 +1,159 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------ *
+ * Sweet Essence — design tokens
+ * Three home-page directions share one honey-toned palette. Tokens are
+ * named by role so each direction can pull the exact shade it needs.
+ * A few "-aa" variants darken/lighten a base shade to clear WCAG AA
+ * where the raw mockup value fell just short.
+ * ------------------------------------------------------------------ */
+@theme {
+  /* backgrounds */
+  --color-cream: #fbf7ef;        /* D1 page */
+  --color-linen: #f8efe0;        /* D2 page */
+  --color-espresso: #211609;     /* D3 page */
+  --color-espresso-card: #2a1c0d;/* D3 card */
+
+  /* inks */
+  --color-ink: #2a1c10;          /* D1 ink */
+  --color-cocoa-ink: #33261a;    /* D2 ink */
+
+  /* golds */
+  --color-gold: #a86a1f;         /* deep gold (decorative) */
+  --color-gold-link: #935b16;    /* AA-safe gold for small text/links on light */
+  --color-amber: #c68a2e;        /* D2 accent */
+  --color-honey: #e0a94a;        /* bright gold (on dark) */
+
+  /* body text */
+  --color-cocoa: #5a4632;        /* D1 body */
+  --color-bark: #5f4c37;         /* D2 body */
+  --color-taupe: #8a7355;        /* muted (decorative / on white it is nudged darker below) */
+  --color-taupe-aa: #6f5b40;     /* AA muted on light */
+  --color-taupe-light: #b39a72;  /* AA muted on dark */
+
+  /* light-on-dark text */
+  --color-parchment: #f6eddc;
+  --color-parchment-2: #f3e6cf;
+  --color-sand: #cdbba1;
+  --color-sand-2: #cbb79a;
+
+  /* surfaces / soft fills */
+  --color-pale: #f2e7d2;
+  --color-butter: #f6e6c8;
+  --color-wheat: #e7d3ad;
+
+  /* fonts (wired to next/font variables in layout.tsx) */
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
+  --font-display: var(--font-playfair), "Playfair Display", Georgia, serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  /* keep anchored sections clear of the sticky nav */
+  scroll-padding-top: 96px;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Skip link for keyboard users */
+.skip-link {
+  position: absolute;
+  left: -999px;
+  top: 0;
+  z-index: 100;
+  padding: 12px 20px;
+  background: #2a1c10;
+  color: #f6eddc;
+  border-radius: 0 0 10px 0;
+  font-weight: 600;
+}
+.skip-link:focus {
+  left: 0;
+}
+
+/* Visible focus ring for keyboard nav */
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--color-honey);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Keyframes carried over from the design
+ * ------------------------------------------------------------------ */
+@keyframes seFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes seFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes seFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-14px);
+  }
+}
+@keyframes seGlow {
+  0%,
+  100% {
+    box-shadow: 0 40px 90px -30px rgba(200, 138, 46, 0.55);
+  }
+  50% {
+    box-shadow: 0 50px 110px -30px rgba(224, 169, 74, 0.8);
+  }
+}
+
+.se-float {
+  animation: seFloat 6s ease-in-out infinite, seGlow 6s ease-in-out infinite;
+}
+.se-float--slow {
+  animation: seFloat 7s ease-in-out infinite,
+    seGlow 7s ease-in-out infinite;
+}
+
+/* Respect reduced-motion across the whole experience */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .se-float,
+  .se-float--slow {
+    animation: none !important;
+  }
+}
