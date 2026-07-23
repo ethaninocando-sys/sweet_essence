@@ -1,6 +1,7 @@
 "use client";
 
 import { AssetImage } from "@/components/ui/AssetImage";
+import { LoopingVideo } from "@/components/ui/LoopingVideo";
 import { MobileMenu } from "@/components/ui/MobileMenu";
 import { Reveal } from "@/components/ui/Reveal";
 import {
@@ -103,12 +104,10 @@ export function OrganicHome() {
           delay={0.15}
           className="mx-auto mt-[60px] h-[280px] max-w-[1000px] overflow-hidden rounded-[28px] shadow-[0_40px_80px_-40px_rgba(51,38,26,.4)] sm:h-[360px] md:h-[460px]"
         >
-          <AssetImage
-            src="/assets/gen-texture.png"
-            alt="Raw honeycomb dripping with fresh honey"
+          <LoopingVideo
+            src="/assets/vid-honeycomb.mp4"
+            poster="/assets/gen-texture.png"
             position="center 50%"
-            sizes="(max-width: 1000px) 88vw, 1000px"
-            priority
           />
         </Reveal>
       </section>
@@ -176,6 +175,25 @@ export function OrganicHome() {
         </div>
       </section>
 
+      {/* SHOWCASE — honey pour */}
+      <section className="px-[6vw] pb-[8vh] pt-[2vh]">
+        <Reveal className="relative mx-auto h-[300px] max-w-[1100px] overflow-hidden rounded-[28px] shadow-[0_40px_80px_-40px_rgba(51,38,26,.4)] sm:h-[380px]">
+          <LoopingVideo
+            src="/assets/vid-pour.mp4"
+            poster="/assets/gen-pour.png"
+            position="center 55%"
+          />
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-cocoa-ink/30 text-center">
+            <span className="mb-3 text-[13px] font-semibold uppercase tracking-[3px] text-white/90">
+              Poured fresh
+            </span>
+            <h2 className="max-w-[560px] px-6 font-serif text-[clamp(28px,3.6vw,44px)] font-bold text-white">
+              Thick, golden, and raw.
+            </h2>
+          </div>
+        </Reveal>
+      </section>
+
       {/* FARM STORY */}
       <section id="story" className="px-[6vw] pb-[8vh] pt-[4vh]">
         <div className="grid items-center gap-[50px] rounded-[30px] bg-white px-[4vw] py-[5vh] lg:grid-cols-2">
@@ -196,8 +214,8 @@ export function OrganicHome() {
             </h2>
             <p className="mb-7 text-[17px] font-light leading-[1.8] text-bark">
               Founded by {site.founders}, we tend every hive ourselves on our
-              farm in the Rio Grande Valley. No middlemen, no processing plants —
-              just our family, our bees, and honey poured fresh into every jar.
+              farm in the Rio Grande Valley. No middlemen, no processing plants.
+              Just our family, our bees, and honey poured fresh into every jar.
             </p>
             <a
               href="#story"
@@ -207,6 +225,25 @@ export function OrganicHome() {
             </a>
           </Reveal>
         </div>
+      </section>
+
+      {/* SHOWCASE — dipper drizzle */}
+      <section className="px-[6vw] pb-[8vh] pt-[2vh]">
+        <Reveal className="relative mx-auto h-[300px] max-w-[1100px] overflow-hidden rounded-[28px] shadow-[0_40px_80px_-40px_rgba(51,38,26,.4)] sm:h-[380px]">
+          <LoopingVideo
+            src="/assets/vid-drizzle.mp4"
+            poster="/assets/gen-hero.png"
+            position="center 45%"
+          />
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-cocoa-ink/30 text-center">
+            <span className="mb-3 text-[13px] font-semibold uppercase tracking-[3px] text-white/90">
+              One pure ingredient
+            </span>
+            <h2 className="max-w-[560px] px-6 font-serif text-[clamp(28px,3.6vw,44px)] font-bold text-white">
+              Nothing added. Just honey.
+            </h2>
+          </div>
+        </Reveal>
       </section>
 
       {/* TESTIMONIALS */}

@@ -71,8 +71,7 @@ export function EditorialHome() {
           </h1>
           <p className="mb-9 max-w-[460px] text-[19px] font-light leading-[1.7] text-cocoa">
             Harvested from our own hives in the Rio Grande Valley. Never heated,
-            never filtered — just one golden ingredient, exactly as the bees
-            intended.
+            never filtered. Just one pure ingredient.
           </p>
           <div className="flex flex-wrap gap-4">
             <a

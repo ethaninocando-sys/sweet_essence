@@ -37,15 +37,15 @@ export const benefits: Benefit[] = [
   },
   {
     title: "From Our Own Hives",
-    desc: "Harvested on our family farm in the Rio Grande Valley — traceable from flower to jar.",
+    desc: "Harvested on our family farm in the Rio Grande Valley. Traceable from flower to jar.",
   },
   {
     title: "Seasonal Wellness",
-    desc: "Local pollen and natural antioxidants that support your body the way nature intended.",
+    desc: "Local pollen and natural antioxidants that support your body through the seasons.",
   },
   {
     title: "One Pure Ingredient",
-    desc: "100% pure raw honey. Nothing added, nothing taken away — ever.",
+    desc: "100% pure raw honey. Nothing added, nothing taken away.",
   },
 ];
 
