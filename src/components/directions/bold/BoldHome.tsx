@@ -101,7 +101,7 @@ export function BoldHome() {
         <div className="relative z-[2] mt-10 flex items-center justify-center lg:mt-0">
           <div className="se-float--slow h-[500px] w-[340px] max-w-[80vw] overflow-hidden rounded-lg border border-honey/35">
             <AssetImage
-              src="/assets/gen-hero.png"
+              src="/assets/gen-hero-bold.png"
               alt="Sweet Essence signature honey jar"
               position="center center"
               sizes="(max-width: 1024px) 80vw, 340px"
@@ -210,7 +210,7 @@ export function BoldHome() {
           <p className="mb-9 text-[18px] font-light leading-[1.85] text-sand">
             {site.founders} raise their own bees in the Rio Grande Valley and
             harvest by hand, one frame at a time. From the first bloom to the
-            sealed jar, our honey never leaves the family — that&apos;s the
+            sealed jar, our honey never leaves the family. That&apos;s the
             difference you taste.
           </p>
           <a

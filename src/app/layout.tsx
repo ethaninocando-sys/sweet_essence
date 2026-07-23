@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     template: "%s · Sweet Essence",
   },
   description:
-    "100% pure raw honey, hand-harvested on our family farm in Edinburg, Texas. Never heated, never filtered — just one golden ingredient, exactly as the bees intended.",
+    "100% pure raw honey, hand-harvested on our family farm in Edinburg, Texas. Never heated, never filtered. Just one pure ingredient.",
   keywords: [
     "raw honey",
     "Rio Grande Valley honey",
