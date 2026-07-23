@@ -12,6 +12,7 @@ const OPTIONS: { id: Direction; label: string }[] = [
   { id: 1, label: "1 · Editorial" },
   { id: 2, label: "2 · Organic" },
   { id: 3, label: "3 · Bold" },
+  { id: 4, label: "4 · Cinematic" },
 ];
 
 /**
