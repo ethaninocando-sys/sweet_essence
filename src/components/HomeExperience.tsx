@@ -4,11 +4,13 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { DesignSwitcher } from "@/components/DesignSwitcher";
 import { BoldHome } from "@/components/directions/bold/BoldHome";
+import { CinematicHome } from "@/components/directions/cinematic/CinematicHome";
 import { EditorialHome } from "@/components/directions/editorial/EditorialHome";
 import { OrganicHome } from "@/components/directions/organic/OrganicHome";
 import type { Direction } from "@/lib/types";
 
-const isDirection = (n: number): n is Direction => n === 1 || n === 2 || n === 3;
+const isDirection = (n: number): n is Direction =>
+  n === 1 || n === 2 || n === 3 || n === 4;
 
 /**
  * Client shell that owns the active design direction. The choice is mirrored
@@ -47,6 +49,7 @@ export function HomeExperience() {
           {direction === 1 && <EditorialHome />}
           {direction === 2 && <OrganicHome />}
           {direction === 3 && <BoldHome />}
+          {direction === 4 && <CinematicHome />}
         </motion.div>
       </AnimatePresence>
 

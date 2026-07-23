@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 interface LoopingVideoProps {
@@ -9,9 +12,10 @@ interface LoopingVideoProps {
 }
 
 /**
- * A muted, autoplaying, looping video on the shared honey-gradient backing.
- * Matches AssetImage so video and photo frames read as one system, and the
- * gradient keeps the frame warm before the clip loads.
+ * A muted, looping video on the shared honey-gradient backing. Matches
+ * AssetImage so video and photo frames read as one system. Playback is gated
+ * to when the frame is on screen (IntersectionObserver), so several background
+ * clips down a page don't all decode at once.
  */
 export function LoopingVideo({
   src,
@@ -19,6 +23,26 @@ export function LoopingVideo({
   position = "center center",
   className,
 }: LoopingVideoProps) {
+  const ref = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = ref.current;
+    if (!video) return;
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      },
+      { threshold: 0.1 },
+    );
+    io.observe(video);
+    return () => io.disconnect();
+  }, []);
+
   return (
     <div
       className={cn("relative h-full w-full overflow-hidden", className)}
@@ -28,11 +52,11 @@ export function LoopingVideo({
       }}
     >
       <video
+        ref={ref}
         className="absolute inset-0 h-full w-full object-cover"
         style={{ objectPosition: position }}
         src={src}
         poster={poster}
-        autoPlay
         muted
         loop
         playsInline

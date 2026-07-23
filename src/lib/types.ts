@@ -1,4 +1,4 @@
-export type Direction = 1 | 2 | 3;
+export type Direction = 1 | 2 | 3 | 4;
 
 export interface Benefit {
   title: string;
