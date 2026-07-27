@@ -1,7 +1,6 @@
 "use client";
 
 import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { Reveal } from "@/components/ui/Reveal";
@@ -9,23 +8,14 @@ import { Reveal } from "@/components/ui/Reveal";
 /**
  * Cinematic hero.
  *
- * The honey "film" is a lazy-loaded WebP image sequence (not a <video>),
- * drawn through the same WebGL shader as before so the grain / vignette /
- * chromatic-aberration / parallax look is preserved exactly. A GSAP
- * ScrollTrigger pins the stage and scrubs the frame index from scroll
- * progress, giving frame-exact forward AND reverse playback with none of the
- * per-seek video decoding that makes <video> currentTime scrubbing stutter
- * (especially on mobile Safari). All animation state lives in refs; React
- * never re-renders during scroll.
+ * The honey "film" is a muted, looping <video> drawn through a WebGL shader
+ * so the grain / vignette / chromatic-aberration / parallax look is
+ * preserved. It just autoplays — no scroll pin, no scrub. All animation
+ * state lives in refs; React never re-renders during playback.
  */
 
-const FRAME_BASE = "/assets/hero-frames/f_";
-const FRAME_COUNT = 97;
-const FRAME_PAD = 3;
+const VIDEO_SRC = "/assets/vid-hero-cinematic.mp4";
 const POSTER = "/assets/gen-hero-cine.png";
-
-const frameUrl = (i: number) =>
-  `${FRAME_BASE}${String(i + 1).padStart(FRAME_PAD, "0")}.webp`;
 
 const VERT = /* glsl */ `
   varying vec2 vUv;
@@ -88,47 +78,28 @@ const FRAG = /* glsl */ `
 `;
 
 export function CinematicHero() {
-  const triggerRef = useRef<HTMLDivElement>(null);
   const pinRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const posterRef = useRef<HTMLImageElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    const trigger = triggerRef.current;
     const pin = pinRef.current;
     const stage = stageRef.current;
-    if (!trigger || !pin || !stage) return;
+    const video = videoRef.current;
+    if (!pin || !stage || !video) return;
 
-    gsap.registerPlugin(ScrollTrigger);
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    // ---- frames: preloaded over the network, decoded on demand ------------
-    const frames: (HTMLImageElement | null)[] = new Array(FRAME_COUNT).fill(null);
-    let loadedMax = -1; // highest contiguous loaded index; scrub clamps to it
-
-    const preload = (i: number) =>
-      new Promise<void>((resolve) => {
-        const img = new Image();
-        img.decoding = "async";
-        img.onload = () => {
-          frames[i] = img;
-          resolve();
-        };
-        img.onerror = () => resolve();
-        img.src = frameUrl(i);
-      });
-
-    // ---- renderer: WebGL (with effects) or a 2D canvas fallback -----------
+    // ---- renderer: WebGL (with effects) or plain <video> fallback ---------
     let disposed = false;
     let useGL = false;
     let renderer: THREE.WebGLRenderer | null = null;
     let scene: THREE.Scene | null = null;
     let camera: THREE.Camera | null = null;
-    let texture: THREE.Texture | null = null;
+    let texture: THREE.VideoTexture | null = null;
     let material: THREE.ShaderMaterial | null = null;
     let mesh: THREE.Mesh | null = null;
-    let canvas2d: HTMLCanvasElement | null = null;
-    let ctx2d: CanvasRenderingContext2D | null = null;
     let uniforms: Record<string, { value: unknown }> | null = null;
 
     try {
@@ -147,13 +118,10 @@ export function CinematicHero() {
       scene = new THREE.Scene();
       camera = new THREE.Camera();
 
-      const blank = document.createElement("canvas");
-      blank.width = blank.height = 2;
-      texture = new THREE.Texture(blank);
+      texture = new THREE.VideoTexture(video);
       texture.minFilter = THREE.LinearFilter;
       texture.magFilter = THREE.LinearFilter;
       texture.generateMipmaps = false;
-      texture.needsUpdate = true;
 
       uniforms = {
         uTex: { value: texture },
@@ -173,83 +141,32 @@ export function CinematicHero() {
       });
       mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
       scene.add(mesh);
-    } else {
-      canvas2d = document.createElement("canvas");
-      canvas2d.className = "absolute inset-0 h-full w-full";
-      ctx2d = canvas2d.getContext("2d");
-      stage.appendChild(canvas2d);
     }
+    // No WebGL: the plain <video> element in the JSX below shows through and
+    // plays on its own, so there's nothing else to set up here.
 
     // ---- sizing (read once per resize, not per frame) ---------------------
-    const size = { w: 0, h: 0, dpr: Math.min(window.devicePixelRatio || 1, 2) };
     const setSize = () => {
-      size.w = pin.clientWidth;
-      size.h = pin.clientHeight;
       if (useGL && renderer && uniforms) {
-        renderer.setSize(size.w, size.h);
+        renderer.setSize(pin.clientWidth, pin.clientHeight);
         const buf = renderer.getDrawingBufferSize(new THREE.Vector2());
         (uniforms.uResolution.value as THREE.Vector2).set(buf.x, buf.y);
-      } else if (canvas2d) {
-        canvas2d.width = Math.round(size.w * size.dpr);
-        canvas2d.height = Math.round(size.h * size.dpr);
-        if (curIdx >= 0) draw2d(curIdx);
-      }
-    };
-
-    // ---- draw a specific frame -------------------------------------------
-    let curIdx = -1;
-    const draw2d = (idx: number) => {
-      const img = frames[idx];
-      if (!img || !ctx2d || !canvas2d) return;
-      const cw = canvas2d.width;
-      const ch = canvas2d.height;
-      const ir = img.naturalWidth / img.naturalHeight;
-      const cr = cw / ch;
-      let dw: number, dh: number;
-      if (cr > ir) {
-        dw = cw;
-        dh = cw / ir;
-      } else {
-        dh = ch;
-        dw = ch * ir;
-      }
-      ctx2d.drawImage(img, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
-    };
-    const showFrame = (idx: number) => {
-      const img = frames[idx];
-      if (!img) return;
-      if (useGL && texture && uniforms) {
-        (uniforms.uTexAspect.value as number) =
-          img.naturalWidth / img.naturalHeight;
-        texture.image = img;
-        texture.needsUpdate = true;
-      } else {
-        draw2d(idx);
-      }
-      if (posterRef.current && posterRef.current.style.opacity !== "0") {
-        posterRef.current.style.opacity = "0";
       }
     };
 
     // ---- render loop (single rAF, driven by GSAP's ticker) ---------------
-    const state = { f: 0 }; // frame float, tweened by ScrollTrigger
     const render = (_t: number, deltaMs: number) => {
-      if (disposed) return;
-      const idx = Math.min(Math.max(Math.round(state.f), 0), Math.max(loadedMax, 0));
-      if (idx !== curIdx && frames[idx]) {
-        curIdx = idx;
-        showFrame(idx);
+      if (disposed || !renderer || !scene || !camera || !uniforms) return;
+      if (video.videoWidth) {
+        (uniforms.uTexAspect.value as number) = video.videoWidth / video.videoHeight;
       }
-      if (useGL && renderer && scene && camera && uniforms) {
-        (uniforms.uTime.value as number) += (deltaMs || 16) / 1000;
-        renderer.render(scene, camera);
-      }
+      (uniforms.uTime.value as number) += (deltaMs || 16) / 1000;
+      renderer.render(scene, camera);
     };
 
     // ---- pointer parallax (desktop only; no-op on touch) ------------------
     const targetMouse = new THREE.Vector2(0, 0);
     const onPointer = (e: PointerEvent) => {
-      if (!pin) return;
       const rect = pin.getBoundingClientRect();
       targetMouse.set(
         ((e.clientX - rect.left) / rect.width - 0.5) * 2,
@@ -264,59 +181,34 @@ export function CinematicHero() {
     window.addEventListener("resize", onResize);
     window.addEventListener("pointermove", onPointer);
 
-    // ---- boot -------------------------------------------------------------
-    let tween: gsap.core.Tween | null = null;
+    // ---- boot: just autoplay, no scroll pin / scrub ------------------------
+    setSize();
 
-    const boot = async () => {
-      setSize();
-      // First frame ASAP so the poster can hand off with no black flash.
-      await preload(0);
-      if (disposed) return;
-      loadedMax = 0;
-      showFrame(0);
-      if (useGL && renderer && scene && camera) renderer.render(scene, camera);
+    const hidePoster = () => {
+      if (posterRef.current) posterRef.current.style.opacity = "0";
+    };
 
-      if (reduce) return; // static hero; no scrub, no ticker
-
-      // Drive frame index from scroll. GSAP `scrub` eases the playhead so it
-      // stays glued to the scroll in both directions.
-      tween = gsap.to(state, {
-        f: FRAME_COUNT - 1,
-        ease: "none",
-        scrollTrigger: {
-          trigger,
-          start: "top top",
-          end: () => "+=" + Math.round(window.innerHeight * 1.8),
-          pin,
-          scrub: 0.5,
-          anticipatePin: 1,
-          invalidateOnRefresh: true,
-        },
+    // Reduced motion: leave the poster in place, nothing plays or animates.
+    if (!reduce) {
+      video.addEventListener("playing", hidePoster, { once: true });
+      video.play().catch(() => {
+        // Autoplay blocked; poster stays until the user interacts.
       });
 
-      gsap.ticker.add(render);
-      gsap.ticker.add(easeMouse);
-      ScrollTrigger.refresh();
-
-      // Load the remaining frames in order so the scrub range fills in.
-      for (let i = 1; i < FRAME_COUNT; i++) {
-        if (disposed) return;
-        await preload(i);
-        loadedMax = i;
+      if (useGL) {
+        gsap.ticker.add(render);
+        gsap.ticker.add(easeMouse);
       }
-      ScrollTrigger.refresh();
-    };
-    boot();
+    }
 
-    // ---- teardown ---------------------------------------------------------
+    // ---- teardown -----------------------------------------------------------
     return () => {
       disposed = true;
       gsap.ticker.remove(render);
       gsap.ticker.remove(easeMouse);
       window.removeEventListener("resize", onResize);
       window.removeEventListener("pointermove", onPointer);
-      tween?.scrollTrigger?.kill();
-      tween?.kill();
+      video.removeEventListener("playing", hidePoster);
       if (renderer) {
         renderer.domElement.remove();
         mesh?.geometry.dispose();
@@ -324,20 +216,31 @@ export function CinematicHero() {
         texture?.dispose();
         renderer.dispose();
       }
-      canvas2d?.remove();
     };
   }, []);
 
   return (
-    <section ref={triggerRef} className="relative">
+    <section className="relative">
       <div
         ref={pinRef}
         className="relative h-[100svh] min-h-[620px] w-full overflow-hidden"
       >
-        {/* WebGL / canvas stage */}
+        {/* source video: WebGL reads it as a texture; also the fallback if WebGL is unavailable */}
+        <video
+          ref={videoRef}
+          src={VIDEO_SRC}
+          className="absolute inset-0 z-0 h-full w-full object-cover"
+          muted
+          loop
+          playsInline
+          autoPlay
+          preload="auto"
+        />
+
+        {/* WebGL stage (drawn on top of the video when available) */}
         <div ref={stageRef} className="absolute inset-0 z-0" />
 
-        {/* poster: shown until the first real frame is drawn */}
+        {/* poster: shown until the video starts playing */}
         <img
           ref={posterRef}
           src={POSTER}
